@@ -2,7 +2,6 @@
 
 
 
-
 static sensor_port_t bumper_sensor_port = EV3_PORT_1;
 
 // This class has an explicitly defined 'config' method.

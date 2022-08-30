@@ -2,7 +2,6 @@
 
 
 
-
 static sensor_port_t line_monitor_sensor_port = EV3_PORT_3;
 static int line_monitor_threshold = 50;
 

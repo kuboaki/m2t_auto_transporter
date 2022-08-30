@@ -2,7 +2,6 @@
 
 
 
-
 static sensor_port_t wall_detector_sensor_port = EV3_PORT_4;
 static int wall_detector_threshold = 8;
 

@@ -14,15 +14,6 @@ typedef enum _auto_transporter_state_t {
 
 static auto_transporter_state_t at_state;
 
-    ATST_WAIT_FOR_LOADING,
-    ATST_TRANSPORTING,
-    ATST_WAIT_FOR_UNLOADING,
-    ATST_WAIT_FOR_START,
-    ATST_WAIT_FOR_RETURN,
-    ATST_WAIT_FOR_PASSING_STATION,
-    ATST_ARRIVED,
-    ATST_RUNNING_TOWARD_GARAGE,
-
 static const char* auto_transporter_state_names[] = {
     "ATST_PSEUDO_END_STATE",
     "ATST_WAIT_FOR_LOADING",

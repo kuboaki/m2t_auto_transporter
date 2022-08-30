@@ -2,7 +2,6 @@
 
 
 
-
 static sensor_port_t carrier_sensor_port = EV3_PORT_2;
 
 // This class has an explicitly defined 'config' method.

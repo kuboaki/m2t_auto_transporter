@@ -2,7 +2,6 @@
 
 
 
-
 static motor_port_t drive_base_left_motor_port = EV3_PORT_A;
 static motor_port_t drive_base_right_motor_port = EV3_PORT_C;
 static int drive_base_power = 40;

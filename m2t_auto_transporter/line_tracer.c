@@ -10,11 +10,6 @@ typedef enum _line_tracer_state_t {
 
 static line_tracer_state_t lt_state;
 
-    LTST_STOPPING,
-    LTST_ON_LINE,
-    LTST_OUT_OF_LINE,
-    LTST_START,
-
 static const char* line_tracer_state_names[] = {
     "LTST_PSEUDO_END_STATE",
     "LTST_STOPPING",
