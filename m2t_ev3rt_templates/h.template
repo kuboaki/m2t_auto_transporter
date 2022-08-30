@@ -1,0 +1,35 @@
+<%if(["motor_port_t", "sensor_port_t"].contains(u.name)){%>\
+//
+// This class is an external class.
+//
+<%return%>\
+<%}%>\
+<% def stateInstance = u.instanceName+"_state"%>\
+<% def eventInstance = u.instanceName+"_event"%>\
+#ifndef ${u.name.toUpperCase()}_H_
+#define ${u.name.toUpperCase()}_H_
+
+#include <ev3api.h>
+#include <stdbool.h>
+
+#include "util.h"
+<%for(attr in u.iclass.attributes) {%>\
+<%if(attr.association) {%>\
+<%for(linkend in attr.association.getMemberEnds()){%>\
+<%if(linkend.getType().getName()!=u.name && linkend.getNavigability().equals("Navigable")){%>\
+#include "${linkend.getType()}.h"
+<%}%>\
+<%}%>\
+<%}%>\
+<%}%>\
+
+extern void ${u.name}_config(void);
+<% for(op in u.iclass.operations){%>\
+<% if(op.parameters.length==0){%>\
+extern ${op.returnType.name} ${u.name}_${op.name}(void);
+<%}else{%>\
+extern ${op.returnType.name} ${u.name}_${op.name}(<%=op.parameters.collect{it.type}.join(", ")%>);
+<%}%>\
+<%}%>\
+
+#endif // ${u.name.toUpperCase()}_H_

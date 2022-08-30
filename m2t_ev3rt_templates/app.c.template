@@ -1,0 +1,21 @@
+<% import com.change_vision.jude.api.inf.model.* %>\
+<% import java.util.regex.Matcher %>\
+#include "${u.name}.h"
+<%for(attr in u.iclass.attributes) {%>\
+<%if(attr.association) {%>\
+<%for(linkend in attr.association.getMemberEnds()){%>\
+<%if(linkend.getType().getName()!=u.name && linkend.getNavigability().equals("Navigable")){%>\
+#include "${linkend.getType()}.h"
+<%}%>\
+<%}%>\
+<%}%>\
+<%}%>\
+
+<% for(op in u.iclass.operations){%>\
+${op.returnType.name} ${op.name}(intptr_t unused) {
+<% for(body in op.definition.split("\n")){%>\
+    ${body}
+<%}%>\
+    ext_tsk();
+}
+<%}%>\

@@ -1,0 +1,20 @@
+<% import com.change_vision.jude.api.inf.model.* %>\
+<% import java.util.regex.Matcher %>\
+INCLUDE("app_common.cfg");
+INCLUDE("tecsgen.cfg");
+
+#include "app.h"
+#include "ev3.h"
+
+DOMAIN(TDOM_APP) {
+CRE_TSK( MAIN_TASK, { TA_NULL, 0, main_task,  MAIN_PRIORITY, STACK_SIZE, NULL } );
+CRE_CYC( CYC0, { TA_STA, { TNFY_ACTTSK, MAIN_TASK }, 50U * 1000U, 1});
+}
+
+<%for(cls in u.classes){%>\
+<%if(["motor_port_t", "sensor_port_t"].contains(cls.name)){%>\
+<%}else{%>\
+ATT_MOD("${cls.name}.o");
+<%}%>\
+<%}%>\
+ATT_MOD("util.o");

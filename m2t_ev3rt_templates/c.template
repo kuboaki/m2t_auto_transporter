@@ -1,0 +1,175 @@
+<% import com.change_vision.jude.api.inf.model.* %>\
+<% import java.util.regex.Matcher %>\
+<%if(["motor_port_t", "sensor_port_t"].contains(u.name)){%>\
+//
+// This class is an external class.
+//
+<%return%>\
+<%}%>\
+<%if(u.iclass.alias1==""){%>\
+// Set 'alias1' for using key letter as short name of the class.
+<%}%>\
+<% key_letter = u.iclass.alias1=="" ? u.name : u.iclass.alias1%>\
+<% KeyLetter = u.iclass.alias1=="" ? u.name.toUpperCase() : u.iclass.alias1.toUpperCase()%>\
+<% def stateInstance = key_letter+"_state"%>\
+<% def eventInstance = key_letter+"_event"%>\
+<% def getStateName(state){KeyLetter + "ST_"+state}%>\
+<% def getEventName(event){keyLetter+"_"+event.name}%>\
+<% def replaceAct(act){
+	if(act=~"setNextTimeout\\((\\d+)(,.+)?\\)"){
+		"timer->setNextTimeout("+Matcher.getLastMatcher().group(1)+","+u.name+"_Timeout)"
+	}else{act.trim();}}%>\
+#include "${u.name}.h"
+
+<% if(u.statemachine){%>\
+typedef enum _${u.name}_state_t {
+    ${getStateName("PSEUDO_END_STATE")},
+${u.states.collect({"    " + getStateName(it)}).join(',\n')}
+} ${u.name}_state_t;
+
+static ${u.name}_state_t ${stateInstance};
+<%}%>\
+
+<% if(u.statemachine){%>\
+static const char* ${u.name}_state_names[] = {
+    "${getStateName("PSEUDO_END_STATE")}",
+${u.states.collect({"    \"" + getStateName(it) + '"'}).join(',\n')}
+};
+<%}%>\
+
+<% for(var in u.iclass.getAttributes()){%>\
+<% if(var.getAssociation() == null){%>\
+<% if(var.isStatic()){%>\
+static \
+<%}%>\
+<% if(var.isReadOnly()){%>\
+const \
+<%}%>\
+<% if(var.getInitialValue()){%>\
+${var.getTypeExpression()} ${u.name}_${var.getName()} = ${var.getInitialValue()};
+<%}else{%>\
+${var.getTypeExpression()} ${u.name}_${var.getName()};
+<%}%>\
+<%}%>\
+<%}%>\
+
+<% if(u.iclass.operations.collect{it.getName()}.contains("config")){%>\
+// This class has an explicitly defined 'config' method.
+<%}else{%>\
+void ${u.name}_config(void) {
+    msg_f("${u.name}_config", 1);
+<%for(attr in u.iclass.attributes) {%>\
+<%if(attr.association) {%>\
+<%for(linkend in attr.association.getMemberEnds()){%>\
+<%if(linkend.getType().getName()!=u.name && linkend.getNavigability().equals("Navigable")){%>\
+    ${linkend.getType()}_config();
+<%}%>\
+<%}%>\
+<%}%>\
+<%}%>\
+
+<% if(u.statemachine){%>\
+    ${stateInstance} = ${getStateName(u.initialState)};
+<% if(u.initialState.entry.trim()!=""){%>\
+<% for(entryAct in u.initialState.entry.normalize().split("\n")){%>\
+    ${replaceAct(entryAct)};  // initial entry action
+    msg_f(${u.name}_state_names[${stateInstance}], 1);
+<%}%>\
+<%}%>\
+<%}%>\
+}
+<%}%>\
+
+<% for(op in u.iclass.operations){%>\
+<% if(u.statemachine && u.statemachine.stateMachineDiagram.name.equals(op.name)){%>\
+<%}else{%>\
+<% if(op.parameters.length==0){%>\
+${op.returnType.name} ${u.name}_${op.name}(void) {
+<%}else{%>\
+${op.returnType.name} ${u.name}_${op.name}(<%=op.parameters.collect{it.typeExpression+" "+it.name}.join(", ")%>) {
+<%}%>\
+<% for(body in op.definition.split("\n")){%>\
+    ${body}
+<%}%>\
+}
+<%}%>\
+<%}%>\
+
+<% if(u.statemachine){%>\
+void ${u.name}_${u.statemachine.stateMachineDiagram}(void) {
+    switch(${stateInstance}){
+<% for(state in u.states){%>\
+    case ${getStateName(state)}:
+<% if(state.getSubvertexes().length!=0 && state.getSubvertexes().find{it instanceof IPseudostate}!=null){%>\
+        ${stateInstance} = ${getStateName(state.getSubvertexes().find{it instanceof IPseudostate}.outgoings[0].target)};
+        break;
+<%}else{%>\
+<% if(state.doActivity.trim()!=""){%>\
+<% for(doAct in state.doActivity.normalize().split("\n")){%>\
+        ${replaceAct(doAct)};  // do action
+<%}%>\
+<%}%>\
+<% for(t in state.outgoings){%>\
+        if(<%if(t.guard.trim()!="") {out<<"("+t.guard+") && "}%><%if(t.event.trim()=="true"||t.event.trim()==""){%>true<% }else if(t.event.trim().toLowerCase()=="timeout"){%>${u.name}_Timeout==event<%} else {%>${t.event.trim()}<%}%>){
+<% if(state.exit.trim()!="") {%>\
+<% for(exitAct in state.exit.normalize().split("\n")){%>\
+            ${replaceAct(exitAct)};    //  exit action;
+<%}%>\
+<%}%>\
+<% if(t.action.trim()!="") {%>\
+<% for(transAct in t.action.normalize().split("\n")){%>\
+            ${replaceAct(transAct)};  // transition action
+<%}%>\
+<%}%>\
+<%if(t.target.name.startsWith("終了状態")){%>\
+            ${stateInstance} = ${getStateName("PSEUDO_END_STATE")};
+<%}else{%>\
+            ${stateInstance} = ${getStateName(t.target)};
+            msg_f(${u.name}_state_names[${stateInstance}], 1);
+<%}%>\
+<% if(t.target.entry.trim()!=""){%>\
+<% for(entryAct in t.target.entry.normalize().split("\n")){%>\
+            ${replaceAct(entryAct)};  // entry action
+<%}%>\
+<%}%>\
+        }
+<%}%>\
+<% if(state.container instanceof IState){%>\
+<% for(p in state.container.outgoings){%>\
+        if(<%if(p.guard.trim()!="") {out<<"("+p.guard+") && "}%><%if(p.event.trim()=="true"||p.event.trim()==""){%>true <% } else {%>${p.event}==event<%}%>){
+<% if(state.exit.trim()!="") {%>\
+<% for(exitAct in state.exit.normalize().split("\n")){%>\
+        ${replaceAct(exitAct)};    // exit action
+<%}%>\
+<%}%>\
+<% if(p.action.trim()!="") {%>\
+            // transition action
+<% for(transAct in p.action.normalize().split("\n")){%>\
+            ${replaceAct(transAct)};  // trans act
+<%}%>\
+<%}%>\
+            ${stateInstance} = ${getStateName(p.target)};
+<% if(p.target.entry.trim()!=""){%>\
+            // ${getStateName(p.target)} state : entry action;
+<% for(entryAct in p.target.entry.normalize().split("\n")){%>\
+            ${replaceAct(entryAct)};  // entry act
+<%}%>\
+<%}%>\
+<% if(state.doActivity.trim()!=""){%>\
+          // ${getStateName(p.target)} state : do action;
+<% for(doAct in state.doActivity.normalize().split("\n")){%>\
+          ${replaceAct(doAct)};        // do act
+<%}%>\
+<%}%>\
+        }
+<%}%>\
+<%}%>\
+<%}%>\
+        break;
+<%}%>\
+    case ${getStateName("PSEUDO_END_STATE")}:
+    default:
+        break;
+    }
+}
+<%}%>\

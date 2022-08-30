@@ -1,0 +1,14 @@
+mkfile_path := \$(dir \$(lastword \$(MAKEFILE_LIST)))
+
+APPL_COBJS += \\
+<%for(cls in u.classes){%>\
+<%if(["app", "motor_port_t", "sensor_port_t"].contains(cls.name)){%>\
+<%}else{%>\
+${cls.name}.o \\
+<%}%>\
+<%}%>\
+util.o
+
+SRCLANG := c
+
+# APPL_DIR += \$(mkfile_path)app
