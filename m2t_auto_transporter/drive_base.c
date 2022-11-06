@@ -4,7 +4,7 @@
 
 static motor_port_t drive_base_left_motor_port = EV3_PORT_A;
 static motor_port_t drive_base_right_motor_port = EV3_PORT_C;
-static int drive_base_power = 40;
+static int drive_base_power = 20;
 
 // This class has an explicitly defined 'config' method.
 
@@ -32,4 +32,3 @@ void drive_base_turn_right(void) {
     ev3_motor_set_power(drive_base_left_motor_port, drive_base_power);
     ev3_motor_set_power(drive_base_right_motor_port, 0);
 }
-
