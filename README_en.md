@@ -441,6 +441,8 @@ ${u.states.collect({"    " + getStateName(it)}).join(',\n')}
 
 Using similar steps, we can create a template for each part of the source code that we want, so that we can generate code that is roughly the same (and a little cleaner) than the code we write by hand. will be
 
+## Tips
+
 If you write `${u.properties}` in the template, you can list the information that the m2t plugin has acquired as properties. It will be helpful.
 
 
